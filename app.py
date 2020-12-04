@@ -15,7 +15,11 @@ import pandas as pd
 import numpy as np
 import os
 import json
+# import xlsxwriter
+# import openpyxl
 # import xlwings
+from io import BytesIO
+import base64
 
 def dfDict_to_json(dict_of_df, orient, **kwargs):# kwargs e.g., date_format='iso' # dict_of_df = Laps
     jsonified_dict={}
@@ -322,12 +326,18 @@ def generate_excel(Results_signals, Results_parameters, oneLiners, Options):
     None.
 
     '''
-    xl_name = '_'.join(['Results', name.replace(' ',''), date])+'.xlsx'
-    with pd.ExcelWriter(xl_name) as writer:
+    # thanks to https://discuss.streamlit.io/t/how-to-download-file-in-streamlit/1806/12
+    output = BytesIO()
+    
+    with pd.ExcelWriter(output) as writer:
         if Options['parameters_to_excel']:
             for exercise in Results_signals.keys():# exercise = list(Results_parameters.keys())[0]
                 Results_parameters[exercise]['summary'].to_excel(writer, sheet_name=exercise+'_summary')
+        writer.save()
+        processed_data = output.getvalue()
         
+    b64 = base64.b64encode(processed_data)
+    return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="Results.xlsx">Download Results as Excel File</a>' # decode b'abc' => abc
     # wb=xlwings.Book()
     # if Options['signals_to_excel']:
     #     for exercise in Results_signals.keys():# exercise = list(Results_signals.keys())[0]
@@ -493,34 +503,35 @@ if len(df_setting)>0:
                 oneLiners=oneLiner(Results_parameters, name, date, exercises, body_mass, method=Options['oneLiner_method'])
                 if oneLiners is not None:
                     if any([Options['parameters_to_excel'], Options['signals_to_excel']]):
-                        generate_excel(Results_signals, Results_parameters, oneLiners, Options)
+                        # generate_excel(Results_signals, Results_parameters, oneLiners, Options)
+                        st.markdown(generate_excel(Results_signals, Results_parameters, oneLiners, Options), unsafe_allow_html=True)
                     
                     # save variables thus far
-                    df_setting.to_json(os.path.join(os.getcwd(),'saved_variables','df_setting.json'), orient='index', date_format='iso')
-                    with open(os.path.join(os.getcwd(),'saved_variables','file_dfs.json'), 'w') as fp:
-                        json.dump(dfDict_to_json(file_dfs, orient='index'), fp)
-                    with open(os.path.join(os.getcwd(),'saved_variables','name.json'), 'w') as fp:
-                        json.dump(name, fp)
-                    with open(os.path.join(os.getcwd(),'saved_variables','date.json'), 'w') as fp:
-                        json.dump(date, fp)
-                    with open(os.path.join(os.getcwd(),'saved_variables','exercises.json'), 'w') as fp:
-                        json.dump(exercises, fp)
-                    with open(os.path.join(os.getcwd(),'saved_variables','settings_data.json'), 'w') as fp:
-                        json.dump(settings_data, fp)
-                    side_loads.to_json(os.path.join(os.getcwd(),'saved_variables','side_loads.json'), orient='index', date_format='iso')
-                    with open(os.path.join(os.getcwd(),'saved_variables','body_mass.json'), 'w') as fp:
-                        json.dump(body_mass, fp)
-                    # with open(os.path.join(os.getcwd(),'saved_variables','Options.json'), 'w') as fp:
-                    #     json.dump(Options, fp)
-                    # with open(os.path.join(os.getcwd(),'saved_variables','uploaded_files_names.json'), 'w') as fp:
-                    #     json.dump([f.name for f in uploaded_files], fp)
-                    # for f in uploaded_files:
-                    #     with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
-                    #         fp.write(f.getbuffer())
-                    # for f in protocol_file:
-                    #     # with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
-                    #     with open(os.path.join(os.getcwd(),'saved_variables','protocol_file_bytesIO.txt'), 'wb') as fp:
-                    #         fp.write(f.getbuffer())
-                    # with open(os.path.join(os.getcwd(),'saved_variables','name_date_exercises.json'), 'w') as fp:
-                    #     json.dump([name, date, exercises], fp)
+                    # df_setting.to_json(os.path.join(os.getcwd(),'saved_variables','df_setting.json'), orient='index', date_format='iso')
+                    # with open(os.path.join(os.getcwd(),'saved_variables','file_dfs.json'), 'w') as fp:
+                    #     json.dump(dfDict_to_json(file_dfs, orient='index'), fp)
+                    # with open(os.path.join(os.getcwd(),'saved_variables','name.json'), 'w') as fp:
+                    #     json.dump(name, fp)
+                    # with open(os.path.join(os.getcwd(),'saved_variables','date.json'), 'w') as fp:
+                    #     json.dump(date, fp)
+                    # with open(os.path.join(os.getcwd(),'saved_variables','exercises.json'), 'w') as fp:
+                    #     json.dump(exercises, fp)
+                    # with open(os.path.join(os.getcwd(),'saved_variables','settings_data.json'), 'w') as fp:
+                    #     json.dump(settings_data, fp)
+                    # side_loads.to_json(os.path.join(os.getcwd(),'saved_variables','side_loads.json'), orient='index', date_format='iso')
+                    # with open(os.path.join(os.getcwd(),'saved_variables','body_mass.json'), 'w') as fp:
+                    #     json.dump(body_mass, fp)
+                    # # with open(os.path.join(os.getcwd(),'saved_variables','Options.json'), 'w') as fp:
+                    # #     json.dump(Options, fp)
+                    # # with open(os.path.join(os.getcwd(),'saved_variables','uploaded_files_names.json'), 'w') as fp:
+                    # #     json.dump([f.name for f in uploaded_files], fp)
+                    # # for f in uploaded_files:
+                    # #     with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
+                    # #         fp.write(f.getbuffer())
+                    # # for f in protocol_file:
+                    # #     # with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
+                    # #     with open(os.path.join(os.getcwd(),'saved_variables','protocol_file_bytesIO.txt'), 'wb') as fp:
+                    # #         fp.write(f.getbuffer())
+                    # # with open(os.path.join(os.getcwd(),'saved_variables','name_date_exercises.json'), 'w') as fp:
+                    # #     json.dump([name, date, exercises], fp)
                     st.write('succeeded!')
