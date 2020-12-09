@@ -488,7 +488,7 @@ if len(df_setting)>0:
     name, date, exercises, settings_data = get_settings_data(df_setting)
 
     if settings_data is not None:
-        # st.write(settings_data)
+        st.write(settings_data)
 #         protocol_file = st.file_uploader('upload test protocol file (xlsx)', accept_multiple_files=False)
 
 #         if protocol_file is not None:
@@ -538,3 +538,4 @@ if len(df_setting)>0:
 #                     # # with open(os.path.join(os.getcwd(),'saved_variables','name_date_exercises.json'), 'w') as fp:
 #                     # #     json.dump([name, date, exercises], fp)
 #                     st.write('succeeded!')
+        
