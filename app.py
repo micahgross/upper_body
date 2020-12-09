@@ -484,14 +484,15 @@ df_setting, file_dfs = get_df_setting([
 
 
 if len(df_setting)>0:
-    st.write('successfully generated df_setting')
+    # st.write('successfully generated df_setting')
     name, date, exercises, settings_data = get_settings_data(df_setting)
 
     if settings_data is not None:
         st.write(settings_data)
-#         protocol_file = st.file_uploader('upload test protocol file (xlsx)', accept_multiple_files=False)
+        protocol_file = st.file_uploader('upload test protocol file (xlsx)', accept_multiple_files=False)
 
-#         if protocol_file is not None:
+        if protocol_file is not None:
+            st.write('successfully uploaded protocol file')
 #             side_loads = get_side_loads(protocol_file)# protocol_file = uploaded_files[uploaded_files_names.index([n for n in uploaded_files_names if 'Test_Protocol' in n][0])]
 #             if side_loads is not None:
 #                 body_mass=side_loads['Syncro bilateral'].loc[1]*20# because the first load should be 10% of body_mass i.e., 5% of body_mass per side
