@@ -485,10 +485,10 @@ df_setting, file_dfs = get_df_setting([
 
 if len(df_setting)>0:
     st.write('successfully generated df_setting')
-#     name, date, exercises, settings_data = get_settings_data(df_setting)
+    name, date, exercises, settings_data = get_settings_data(df_setting)
 
-#     if settings_data is not None:
-#         # st.write(settings_data)
+    if settings_data is not None:
+        # st.write(settings_data)
 #         protocol_file = st.file_uploader('upload test protocol file (xlsx)', accept_multiple_files=False)
 
 #         if protocol_file is not None:
