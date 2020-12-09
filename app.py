@@ -496,48 +496,48 @@ if len(df_setting)>0:
             side_loads = get_side_loads(protocol_file)# protocol_file = uploaded_files[uploaded_files_names.index([n for n in uploaded_files_names if 'Test_Protocol' in n][0])]
             if side_loads is not None:
                 st.write('successfully generated side_loads')
-#                 body_mass=side_loads['Syncro bilateral'].loc[1]*20# because the first load should be 10% of body_mass i.e., 5% of body_mass per side
-#                 Results_parameters, Results_signals = results_parameters_signals(file_dfs,
-#                                                                                  df_setting,
-#                                                                                  name,
-#                                                                                  date,
-#                                                                                  exercises,
-#                                                                                  side_loads,
-#                                                                                  )
-#             if Results_parameters is not None:
-#                 oneLiners=oneLiner(Results_parameters, name, date, exercises, body_mass, method=Options['oneLiner_method'])
-#                 if oneLiners is not None:
-#                     if any([Options['parameters_to_excel'], Options['signals_to_excel']]):
-#                         # generate_excel(Results_signals, Results_parameters, oneLiners, Options)
-#                         st.markdown(generate_excel(Results_signals, Results_parameters, oneLiners, Options), unsafe_allow_html=True)
+                body_mass=side_loads['Syncro bilateral'].loc[1]*20# because the first load should be 10% of body_mass i.e., 5% of body_mass per side
+                Results_parameters, Results_signals = results_parameters_signals(file_dfs,
+                                                                                  df_setting,
+                                                                                  name,
+                                                                                  date,
+                                                                                  exercises,
+                                                                                  side_loads,
+                                                                                  )
+            if Results_parameters is not None:
+                oneLiners=oneLiner(Results_parameters, name, date, exercises, body_mass, method=Options['oneLiner_method'])
+                if oneLiners is not None:
+                    if any([Options['parameters_to_excel'], Options['signals_to_excel']]):
+                        # generate_excel(Results_signals, Results_parameters, oneLiners, Options)
+                        st.markdown(generate_excel(Results_signals, Results_parameters, oneLiners, Options), unsafe_allow_html=True)
                     
-#                     # save variables thus far
-#                     # df_setting.to_json(os.path.join(os.getcwd(),'saved_variables','df_setting.json'), orient='index', date_format='iso')
-#                     # with open(os.path.join(os.getcwd(),'saved_variables','file_dfs.json'), 'w') as fp:
-#                     #     json.dump(dfDict_to_json(file_dfs, orient='index'), fp)
-#                     # with open(os.path.join(os.getcwd(),'saved_variables','name.json'), 'w') as fp:
-#                     #     json.dump(name, fp)
-#                     # with open(os.path.join(os.getcwd(),'saved_variables','date.json'), 'w') as fp:
-#                     #     json.dump(date, fp)
-#                     # with open(os.path.join(os.getcwd(),'saved_variables','exercises.json'), 'w') as fp:
-#                     #     json.dump(exercises, fp)
-#                     # with open(os.path.join(os.getcwd(),'saved_variables','settings_data.json'), 'w') as fp:
-#                     #     json.dump(settings_data, fp)
-#                     # side_loads.to_json(os.path.join(os.getcwd(),'saved_variables','side_loads.json'), orient='index', date_format='iso')
-#                     # with open(os.path.join(os.getcwd(),'saved_variables','body_mass.json'), 'w') as fp:
-#                     #     json.dump(body_mass, fp)
-#                     # # with open(os.path.join(os.getcwd(),'saved_variables','Options.json'), 'w') as fp:
-#                     # #     json.dump(Options, fp)
-#                     # # with open(os.path.join(os.getcwd(),'saved_variables','uploaded_files_names.json'), 'w') as fp:
-#                     # #     json.dump([f.name for f in uploaded_files], fp)
-#                     # # for f in uploaded_files:
-#                     # #     with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
-#                     # #         fp.write(f.getbuffer())
-#                     # # for f in protocol_file:
-#                     # #     # with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
-#                     # #     with open(os.path.join(os.getcwd(),'saved_variables','protocol_file_bytesIO.txt'), 'wb') as fp:
-#                     # #         fp.write(f.getbuffer())
-#                     # # with open(os.path.join(os.getcwd(),'saved_variables','name_date_exercises.json'), 'w') as fp:
-#                     # #     json.dump([name, date, exercises], fp)
-#                     st.write('succeeded!')
+                    # save variables thus far
+                    # df_setting.to_json(os.path.join(os.getcwd(),'saved_variables','df_setting.json'), orient='index', date_format='iso')
+                    # with open(os.path.join(os.getcwd(),'saved_variables','file_dfs.json'), 'w') as fp:
+                    #     json.dump(dfDict_to_json(file_dfs, orient='index'), fp)
+                    # with open(os.path.join(os.getcwd(),'saved_variables','name.json'), 'w') as fp:
+                    #     json.dump(name, fp)
+                    # with open(os.path.join(os.getcwd(),'saved_variables','date.json'), 'w') as fp:
+                    #     json.dump(date, fp)
+                    # with open(os.path.join(os.getcwd(),'saved_variables','exercises.json'), 'w') as fp:
+                    #     json.dump(exercises, fp)
+                    # with open(os.path.join(os.getcwd(),'saved_variables','settings_data.json'), 'w') as fp:
+                    #     json.dump(settings_data, fp)
+                    # side_loads.to_json(os.path.join(os.getcwd(),'saved_variables','side_loads.json'), orient='index', date_format='iso')
+                    # with open(os.path.join(os.getcwd(),'saved_variables','body_mass.json'), 'w') as fp:
+                    #     json.dump(body_mass, fp)
+                    # # with open(os.path.join(os.getcwd(),'saved_variables','Options.json'), 'w') as fp:
+                    # #     json.dump(Options, fp)
+                    # # with open(os.path.join(os.getcwd(),'saved_variables','uploaded_files_names.json'), 'w') as fp:
+                    # #     json.dump([f.name for f in uploaded_files], fp)
+                    # # for f in uploaded_files:
+                    # #     with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
+                    # #         fp.write(f.getbuffer())
+                    # # for f in protocol_file:
+                    # #     # with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
+                    # #     with open(os.path.join(os.getcwd(),'saved_variables','protocol_file_bytesIO.txt'), 'wb') as fp:
+                    # #         fp.write(f.getbuffer())
+                    # # with open(os.path.join(os.getcwd(),'saved_variables','name_date_exercises.json'), 'w') as fp:
+                    # #     json.dump([name, date, exercises], fp)
+                    st.write('succeeded!')
         
