@@ -478,13 +478,13 @@ uploaded_files = st.file_uploader("upload csv export files", accept_multiple_fil
 
 if len(uploaded_files)>0:
     st.write('uploaded '+str(len(uploaded_files))+' raw data files ')
-# df_setting, file_dfs = get_df_setting([
-#     f for f in uploaded_files if 'RawMotionSampleExport' in f.name
-#     ])
+df_setting, file_dfs = get_df_setting([
+    f for f in uploaded_files if 'RawMotionSampleExport' in f.name
+    ])
 
 
-# if len(df_setting)>0:
-#     # st.write('uploaded '+str(len(df_setting))+' raw data files ')
+if len(df_setting)>0:
+    st.write('successfully generated df_setting')
 #     name, date, exercises, settings_data = get_settings_data(df_setting)
 
 #     if settings_data is not None:
