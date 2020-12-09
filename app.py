@@ -492,10 +492,10 @@ if len(df_setting)>0:
         protocol_file = st.file_uploader('upload test protocol file (xlsx)', accept_multiple_files=False)
 
         if protocol_file is not None:
-            st.write('successfully uploaded protocol file')
+            # st.write('successfully uploaded protocol file')
             side_loads = get_side_loads(protocol_file)# protocol_file = uploaded_files[uploaded_files_names.index([n for n in uploaded_files_names if 'Test_Protocol' in n][0])]
             if side_loads is not None:
-                st.write('successfully generated side_loads')
+                # st.write('successfully generated side_loads')
                 body_mass=side_loads['Syncro bilateral'].loc[1]*20# because the first load should be 10% of body_mass i.e., 5% of body_mass per side
                 Results_parameters, Results_signals = results_parameters_signals(file_dfs,
                                                                                   df_setting,
