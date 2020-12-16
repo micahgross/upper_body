@@ -334,6 +334,12 @@ def generate_excel(Results_signals, Results_parameters, oneLiners, Options):
         if Options['parameters_to_excel']:
             for exercise in Results_signals.keys():# exercise = list(Results_parameters.keys())[0]
                 Results_parameters[exercise]['summary'].to_excel(writer, sheet_name=exercise+'_summary')
+            for exercise in oneLiners.keys():# exercise = list(oneLiners.keys())[0]
+                for entry_type in oneLiners[exercise].keys():# entry_type = list(oneLiners[exercise].keys())[0]
+                    if Options['transpose_oneLiner']:
+                        oneLiners[exercise][entry_type].set_index('subject').T.to_excel(writer, sheet_name=excercise+'_'+entry_type)
+                    else:
+                        oneLiners[exercise][entry_type].set_index('subject').to_excel(writer, sheet_name=excercise+'_'+entry_type)
         writer.save()
         processed_data = output.getvalue()
         
