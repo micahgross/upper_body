@@ -6,6 +6,7 @@ Created on Thu Nov 26 09:05:47 2020
 
 """
 # initiate app in Anaconda Navigator with
+# cd "C:\Users\BASPO\.spyder-py3\Quantum"
 # cd "C:\Users\BASPO\.spyder-py3\streamlit_apps\upper_body"
 # streamlit run app.py
 
@@ -126,7 +127,9 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
         for f_nr,f_name in enumerate(exercise_file_names):# f_nr,f_name = 0,exercise_file_names[0]
             df_in = file_dfs[f_name]
             # print which file is being processed
-            exercise_file_container_1.text('currently processing file '+str(f_nr+1)+' of '+str(len(df_setting)))
+            exercise_file_container_1.text('currently processing file '+str(
+                df_setting[df_setting['File_name']==f_name].index[0]+1
+                )+' of '+str(len(df_setting)))
             exercise_file_container_2.text(exercise+' file nr '+str(f_nr+1)+': / '+f_name)
     
             # generate appropriate keys for Results_signals and Results_parameters
@@ -460,6 +463,7 @@ def get_settings_data(df_setting):
 
 def get_side_loads(protocol_file):#
     pf = protocol_file.read()# pf = os.path.join(os.getcwd(),'sample_data','Test_Protocol_Micah Gross_2020-10-16.xlsx')
+    body_mass = np.nanmean([pd.read_excel(pf, sheet, header=1, usecols=[1], nrows=1).iloc[0,0] for sheet in ['Press', 'Pull']])
     df = pd.read_excel(pf, None, header=6, usecols=range(12), nrows=6)#.dropna(how='all').set_index('Stage', drop=False)
     df_press = df['Press'].dropna(how='all').set_index('Stage', drop=False)# pd.ExcelFile(protocol_file).parse('Press', header=6, usecols=range(12)).loc[:5].dropna(how='all').set_index('Stage', drop=False)#, nrows=6, skiprows=7
     df_pull = df['Pull'].dropna(how='all').set_index('Stage', drop=False)# pd.ExcelFile(protocol_file).parse('Pull', header=6, usecols=range(12)).loc[:5].dropna(how='all').set_index('Stage', drop=False)#, nrows=6, skiprows=7
@@ -469,7 +473,7 @@ def get_side_loads(protocol_file):#
         'Syncro bilateral': df_pull['true load side (kg)']
         })
     side_loads = side_loads.set_index(pd.Index(np.arange(1,len(side_loads)+1)))
-    return side_loads
+    return body_mass, side_loads
 
 def user_input_options():
     Options = {}
@@ -521,10 +525,10 @@ if len(df_setting)>0:
 
         if protocol_file is not None:
             # st.write('successfully uploaded protocol file')
-            side_loads = get_side_loads(protocol_file)# protocol_file = uploaded_files[uploaded_files_names.index([n for n in uploaded_files_names if 'Test_Protocol' in n][0])]
+            body_mass, side_loads = get_side_loads(protocol_file)# protocol_file = uploaded_files[uploaded_files_names.index([n for n in uploaded_files_names if 'Test_Protocol' in n][0])]
             if side_loads is not None:
                 # st.write('successfully generated side_loads')
-                body_mass=side_loads['Syncro bilateral'].loc[1]*20# because the first load should be 10% of body_mass i.e., 5% of body_mass per side
+                # body_mass=side_loads['Syncro bilateral'].loc[1]*20# because the first load should be 10% of body_mass i.e., 5% of body_mass per side
                 Results_parameters, Results_signals = results_parameters_signals(file_dfs,
                                                                                   df_setting,
                                                                                   name,
