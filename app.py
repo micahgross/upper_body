@@ -8,8 +8,6 @@ Created on Thu Nov 26 09:05:47 2020
 # initiate app in Anaconda Navigator with
 # cd "C:\Users\BASPO\.spyder-py3\streamlit_apps\upper_body"
 # streamlit run app.py
-# cd "C:\Users\BASPO\.spyder-py3\Quantum\"
-# streamlit run upper_body_mld_app.py
 
 import streamlit as st
 import pandas as pd
@@ -127,7 +125,7 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
         for f_nr,f_name in enumerate(exercise_file_names):# f_nr,f_name = 0,exercise_file_names[0]
             df_in = file_dfs[f_name]
             # print which file is being processed
-            exercise_file_container.text('currently processing: '+exercise+' file nr '+str(f_nr+1)+': / '+f_name)
+            exercise_file_container.text('currently processing file '+str(f_nr+1)+' of '+str(len(df_setting))+': '+exercise+' file nr '+str(f_nr+1)+': / '+f_name)
     
             # generate appropriate keys for Results_signals and Results_parameters
             Results_signals[exercise]['file_'+str(f_nr+1)]={}
@@ -266,17 +264,23 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
     load_rep_container.empty()
     return Results_parameters, Results_signals
 
-def oneLiner(Results_parameters, name, date, exercises, body_mass, method='mean'):
+def oneLiner(Results_parameters, name, date, body_mass, method='mean', exercises=['Syncro smith bilateral', 'Syncro bilateral']):
     '''
     'method' can be either 'median',  'mean' or 'max'
+    method = Options['oneLiner_method']
     '''
     oneLiner=pd.DataFrame()
     oneLiner.loc[0,'subject']=name
     oneLiner.loc[0,'date']=date
     oneLiner.loc[0,'body_mass']=body_mass
-    for exercise in exercises:#['Syncro bilateral', 'Syncro smith bilateral']:# exercise = 'Syncro bilateral' # exercise = 'Syncro smith bilateral' 
-        df_ex_sum=Results_parameters[exercise]['summary']
-        for load_nr in df_ex_sum['load_nr'].unique():# load_nr=1
+    for exercise in exercises:# exercise=exercises[0] # exercise=exercises[exercises.index(exercise)+1]
+        try:
+            df_ex_sum=Results_parameters[exercise]['summary']
+        except:
+            df_ex_sum=pd.DataFrame(
+                columns=Results_parameters[list(Results_parameters.keys())[0]]['summary'].columns
+                )
+        for load_nr in range(1,7):# load_nr=1 # load_nr=load_nr+1
             load_nr=int(load_nr)
             df_ex_sum_ld=df_ex_sum[df_ex_sum.load_nr==load_nr]
             for par in df_ex_sum_ld.columns[1]:# par=df_ex_sum_ld.columns[1]
@@ -332,14 +336,26 @@ def generate_excel(Results_signals, Results_parameters, oneLiners, Options):
     
     with pd.ExcelWriter(output) as writer:
         if Options['parameters_to_excel']:
-            for exercise in Results_signals.keys():# exercise = list(Results_parameters.keys())[0]
-                Results_parameters[exercise]['summary'].to_excel(writer, sheet_name=exercise+'_summary')
-            for exercise in oneLiners.keys():# exercise = list(oneLiners.keys())[0]
-                for entry_type in oneLiners[exercise].keys():# entry_type = list(oneLiners[exercise].keys())[0]
-                    if Options['transpose_oneLiner']:
-                        oneLiners[exercise][entry_type].set_index('subject').T.to_excel(writer, sheet_name=exercise+'_'+entry_type)
-                    else:
-                        oneLiners[exercise][entry_type].set_index('subject').to_excel(writer, sheet_name=exercise+'_'+entry_type)
+            for exercise in Results_parameters.keys():# exercise = list(Results_parameters.keys())[0]
+                Results_parameters[exercise]['summary'].to_excel(writer, sheet_name=exercise+'_summary', index=False)
+                # workbook = writer.book
+                # worksheet = writer.sheets[exercise+'_summary']
+                # fmt_tenth = workbook.add_format({'num_format': '#.#0.0'})
+                # worksheet.set_column('F:F', 15, fmt_tenth)
+            if Options['all_oneLiners']:
+                for exercise in oneLiners.keys():# exercise = list(oneLiners.keys())[0]
+                    for entry_type in oneLiners[exercise].keys():# entry_type = list(oneLiners[exercise].keys())[0]
+                        if Options['transpose_oneLiner']:
+                            oneLiners[exercise][entry_type].set_index('subject').T.to_excel(writer, sheet_name=exercise+'_'+entry_type)
+                        else:
+                            oneLiners[exercise][entry_type].set_index('subject').to_excel(writer, sheet_name=exercise+'_'+entry_type)
+            else:
+                exercise = 'all_exercises'# exercise = list(oneLiners.keys())[0]
+                entry_type = 'full'# entry_type = list(oneLiners[exercise].keys())[0]
+                if Options['transpose_oneLiner']:
+                    oneLiners[exercise][entry_type].set_index('subject').T.to_excel(writer, sheet_name=exercise+'_'+entry_type)
+                else:
+                    oneLiners[exercise][entry_type].set_index('subject').to_excel(writer, sheet_name=exercise+'_'+entry_type)
         writer.save()
         processed_data = output.getvalue()
         
@@ -468,6 +484,9 @@ def user_input_options():
     Options['transpose_oneLiner'] =  st.sidebar.checkbox('transpose one-liner (to column)',
                                                           value=True,
                                                           key='transpose_oneLiner')
+    Options['all_oneLiners'] =  st.sidebar.checkbox('export all one-liners',
+                                                          value=False,
+                                                          key='all_oneLiners')
     Options['use_cols'] = ['Position [m]', 'Speed [m/s]', 'Acceleration [m/(s^2)]', 'Force [N]', 'Sample duration [s]']
     Options['F_calc_method'] = 'impulse'
     # st.write(Options)
@@ -511,39 +530,39 @@ if len(df_setting)>0:
                                                                                   side_loads,
                                                                                   )
             if Results_parameters is not None:
-                oneLiners=oneLiner(Results_parameters, name, date, exercises, body_mass, method=Options['oneLiner_method'])
+                oneLiners=oneLiner(Results_parameters, name, date, body_mass, method=Options['oneLiner_method'])
                 if oneLiners is not None:
                     if any([Options['parameters_to_excel'], Options['signals_to_excel']]):
                         # generate_excel(Results_signals, Results_parameters, oneLiners, Options)
                         st.markdown(generate_excel(Results_signals, Results_parameters, oneLiners, Options), unsafe_allow_html=True)
                     
                     # save variables thus far
-                    # df_setting.to_json(os.path.join(os.getcwd(),'saved_variables','df_setting.json'), orient='index', date_format='iso')
-                    # with open(os.path.join(os.getcwd(),'saved_variables','file_dfs.json'), 'w') as fp:
-                    #     json.dump(dfDict_to_json(file_dfs, orient='index'), fp)
-                    # with open(os.path.join(os.getcwd(),'saved_variables','name.json'), 'w') as fp:
-                    #     json.dump(name, fp)
-                    # with open(os.path.join(os.getcwd(),'saved_variables','date.json'), 'w') as fp:
-                    #     json.dump(date, fp)
-                    # with open(os.path.join(os.getcwd(),'saved_variables','exercises.json'), 'w') as fp:
-                    #     json.dump(exercises, fp)
-                    # with open(os.path.join(os.getcwd(),'saved_variables','settings_data.json'), 'w') as fp:
-                    #     json.dump(settings_data, fp)
-                    # side_loads.to_json(os.path.join(os.getcwd(),'saved_variables','side_loads.json'), orient='index', date_format='iso')
-                    # with open(os.path.join(os.getcwd(),'saved_variables','body_mass.json'), 'w') as fp:
-                    #     json.dump(body_mass, fp)
-                    # # with open(os.path.join(os.getcwd(),'saved_variables','Options.json'), 'w') as fp:
-                    # #     json.dump(Options, fp)
-                    # # with open(os.path.join(os.getcwd(),'saved_variables','uploaded_files_names.json'), 'w') as fp:
-                    # #     json.dump([f.name for f in uploaded_files], fp)
-                    # # for f in uploaded_files:
-                    # #     with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
-                    # #         fp.write(f.getbuffer())
-                    # # for f in protocol_file:
-                    # #     # with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
-                    # #     with open(os.path.join(os.getcwd(),'saved_variables','protocol_file_bytesIO.txt'), 'wb') as fp:
-                    # #         fp.write(f.getbuffer())
-                    # # with open(os.path.join(os.getcwd(),'saved_variables','name_date_exercises.json'), 'w') as fp:
-                    # #     json.dump([name, date, exercises], fp)
+                    df_setting.to_json(os.path.join(os.getcwd(),'saved_variables','df_setting.json'), orient='index', date_format='iso')
+                    with open(os.path.join(os.getcwd(),'saved_variables','file_dfs.json'), 'w') as fp:
+                        json.dump(dfDict_to_json(file_dfs, orient='index'), fp)
+                    with open(os.path.join(os.getcwd(),'saved_variables','name.json'), 'w') as fp:
+                        json.dump(name, fp)
+                    with open(os.path.join(os.getcwd(),'saved_variables','date.json'), 'w') as fp:
+                        json.dump(date, fp)
+                    with open(os.path.join(os.getcwd(),'saved_variables','exercises.json'), 'w') as fp:
+                        json.dump(exercises, fp)
+                    with open(os.path.join(os.getcwd(),'saved_variables','settings_data.json'), 'w') as fp:
+                        json.dump(settings_data, fp)
+                    side_loads.to_json(os.path.join(os.getcwd(),'saved_variables','side_loads.json'), orient='index', date_format='iso')
+                    with open(os.path.join(os.getcwd(),'saved_variables','body_mass.json'), 'w') as fp:
+                        json.dump(body_mass, fp)
+                    # with open(os.path.join(os.getcwd(),'saved_variables','Options.json'), 'w') as fp:
+                    #     json.dump(Options, fp)
+                    # with open(os.path.join(os.getcwd(),'saved_variables','uploaded_files_names.json'), 'w') as fp:
+                    #     json.dump([f.name for f in uploaded_files], fp)
+                    # for f in uploaded_files:
+                    #     with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
+                    #         fp.write(f.getbuffer())
+                    # for f in protocol_file:
+                    #     # with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
+                    #     with open(os.path.join(os.getcwd(),'saved_variables','protocol_file_bytesIO.txt'), 'wb') as fp:
+                    #         fp.write(f.getbuffer())
+                    # with open(os.path.join(os.getcwd(),'saved_variables','name_date_exercises.json'), 'w') as fp:
+                    #     json.dump([name, date, exercises], fp)
                     st.write('succeeded!')
         
