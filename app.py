@@ -262,7 +262,8 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
         # sort the summary table
         if 'summary' in Results_parameters[exercise].keys():
             Results_parameters[exercise]['summary'].sort_values(by=['load_nr','rep_nr'])
-    exercise_file_container.empty()
+    exercise_file_container_1.empty()
+    exercise_file_container_2.empty()
     load_rep_container.empty()
     return Results_parameters, Results_signals
 
