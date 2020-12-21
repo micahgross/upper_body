@@ -180,12 +180,12 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
                     for machine in [1,2]:# machine=1
                         phase_signals[machine]=df_in[((df_in['Repetition # (per Set)']==rep) & (df_in['Machine index (In Syncro)']==machine) & (df_in['Motion type']=='Con. / Resist.' if phase=='out' else df_in['Motion type']=='Ecc. / Assist.'))][Options['use_cols']]
                         phase_signals[machine].columns=Options['use_cols']# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
-                        if phase==conc_direction:
-                            i_end_prop = list(np.sign(phase_signals[machine]['Speed [m/s]']) == np.sign(phase_signals[machine]['Acceleration [m/(s^2)]'])).index(False)
-                            phase_signals[machine] = phase_signals[machine].iloc[:i_end_prop]# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
-                            # # i_end_prop = max(np.where(np.sign(phase_signals[machine]['Speed [m/s]']) == np.sign(phase_signals[machine]['Acceleration [m/(s^2)]']))[0])
-                            # idx_end_prop = phase_signals[machine].index[i_end_prop]
-                            # phase_signals[machine] = phase_signals[machine].loc[:idx_end_prop]
+                        # if phase==conc_direction:
+                        #     i_end_prop = list(np.sign(phase_signals[machine]['Speed [m/s]']) == np.sign(phase_signals[machine]['Acceleration [m/(s^2)]'])).index(False)
+                        #     phase_signals[machine] = phase_signals[machine].iloc[:i_end_prop]# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
+                        #     # # i_end_prop = max(np.where(np.sign(phase_signals[machine]['Speed [m/s]']) == np.sign(phase_signals[machine]['Acceleration [m/(s^2)]']))[0])
+                        #     # idx_end_prop = phase_signals[machine].index[i_end_prop]
+                        #     # phase_signals[machine] = phase_signals[machine].loc[:idx_end_prop]
                             
                     if len(phase_signals[1])*len(phase_signals[2])==0:# if the phase wasn't recorded for this rep
                         st.write('rep '+str(rep)+', '+phase+': no available data')
