@@ -134,7 +134,7 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
     
             # generate appropriate keys for Results_signals and Results_parameters
             Results_signals[exercise]['file_'+str(f_nr+1)]={}
-            Results_parameters[exercise]['file_'+str(f_nr+1)]={}
+            # Results_parameters[exercise]['file_'+str(f_nr+1)]={}
     
             # iterate through reps
             for rep in df_in['Repetition # (per Set)'].unique():# rep=1 # rep=2
@@ -170,7 +170,7 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
                 for phase in ['out','in']:# phase='out' # phase='in'
                     # generate appropriate keys for Results_signals and Results_parameters
                     Results_signals[exercise]['file_'+str(f_nr+1)]['Rep'+str(rep)][phase]={}
-                    Results_parameters[exercise]['file_'+str(f_nr+1)]['rep_'+str(rep)][phase]={}
+                    # Results_parameters[exercise]['file_'+str(f_nr+1)]['rep_'+str(rep)][phase]={}
                     
                     # create dict to store signals within phase
                     phase_signals={}
@@ -251,8 +251,8 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
                     regular_phase_signals['combined']['F_calc [N]']=(regular_phase_signals[1]['F_calc [N]']+regular_phase_signals[2]['F_calc [N]'])[:length_combined]# sum of the two sides
                     regular_phase_signals['combined']['P_calc [W]']=(regular_phase_signals[1]['P_calc [W]']+regular_phase_signals[2]['P_calc [W]'])[:length_combined]# sum of the two sides
 
-                    for machine in [1,2,'combined']:# machine=1 machine='combined'
-                        Results_parameters[exercise]['file_'+str(f_nr+1)]['rep_'+str(rep)][phase][machine]=calculate_parameters(regular_phase_signals,machine,a_threshold=0.0)
+                    # for machine in [1,2,'combined']:# machine=1 machine='combined'
+                    #     Results_parameters[exercise]['file_'+str(f_nr+1)]['rep_'+str(rep)][phase][machine]=calculate_parameters(regular_phase_signals,machine,a_threshold=0.0)
 
                     # save phase parameters to summary table
                     i=running_rep#-1
