@@ -179,7 +179,13 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
                     # extract desired raw signals
                     for machine in [1,2]:# machine=1
                         phase_signals[machine]=df_in[((df_in['Repetition # (per Set)']==rep) & (df_in['Machine index (In Syncro)']==machine) & (df_in['Motion type']=='Con. / Resist.' if phase=='out' else df_in['Motion type']=='Ecc. / Assist.'))][Options['use_cols']]
-                        phase_signals[machine].columns=Options['use_cols']
+                        phase_signals[machine].columns=Options['use_cols']# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
+                        if phase==conc_direction:
+                            i_end_prop = list(np.sign(phase_signals[machine]['Speed [m/s]']) == np.sign(phase_signals[machine]['Acceleration [m/(s^2)]'])).index(False)
+                            phase_signals[machine] = phase_signals[machine].iloc[:i_end_prop]# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
+                            # # i_end_prop = max(np.where(np.sign(phase_signals[machine]['Speed [m/s]']) == np.sign(phase_signals[machine]['Acceleration [m/(s^2)]']))[0])
+                            # idx_end_prop = phase_signals[machine].index[i_end_prop]
+                            # phase_signals[machine] = phase_signals[machine].loc[:idx_end_prop]
                             
                     if len(phase_signals[1])*len(phase_signals[2])==0:# if the phase wasn't recorded for this rep
                         st.write('rep '+str(rep)+', '+phase+': no available data')
@@ -338,6 +344,8 @@ def generate_excel(Results_signals, Results_parameters, oneLiners, Options):
 
     '''
     # thanks to https://discuss.streamlit.io/t/how-to-download-file-in-streamlit/1806/12
+    writing_excel_container = st.empty()
+    writing_excel_container.text('writing to excel')
     output = BytesIO()
     
     with pd.ExcelWriter(output) as writer:
@@ -384,6 +392,7 @@ def generate_excel(Results_signals, Results_parameters, oneLiners, Options):
         processed_data = output.getvalue()
         
     b64 = base64.b64encode(processed_data)
+    writing_excel_container.empty()
     return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="Results.xlsx">Download Results as Excel File</a>' # decode b'abc' => abc
     # wb=xlwings.Book()
     # if Options['signals_to_excel']:
