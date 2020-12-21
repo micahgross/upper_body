@@ -140,7 +140,7 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
             for rep in df_in['Repetition # (per Set)'].unique():# rep=1 # rep=2
                 # generate appropriate keys for Results_signals and Results_parameters
                 Results_signals[exercise]['file_'+str(f_nr+1)]['Rep'+str(rep)]={}
-                Results_parameters[exercise]['file_'+str(f_nr+1)]['rep_'+str(rep)]={}
+                # Results_parameters[exercise]['file_'+str(f_nr+1)]['rep_'+str(rep)]={}
     
                 if 'summary' not in Results_parameters[exercise].keys():# true for first running rep only
                     Results_parameters[exercise]['summary']=pd.DataFrame()
