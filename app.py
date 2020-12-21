@@ -362,6 +362,24 @@ def generate_excel(Results_signals, Results_parameters, oneLiners, Options):
                     oneLiners[exercise][entry_type].set_index('subject').T.to_excel(writer, sheet_name=exercise+'_'+entry_type)
                 else:
                     oneLiners[exercise][entry_type].set_index('subject').to_excel(writer, sheet_name=exercise+'_'+entry_type)
+        if Options['signals_to_excel']:
+            for exercise in Results_signals.keys():# exercise = list(Results_signals.keys())[0]
+                for file in Results_signals[exercise].keys():# file = list(Results_signals[exercise].keys())[0]
+                    for rep in Results_signals[exercise][file].keys():# rep = list(Results_signals[exercise][file].keys())[0]
+                        for direction in Results_signals[exercise][file][rep].keys():# direction = list(Results_signals[exercise][file][rep].keys())[0]
+                            df = Results_signals[exercise][file][rep][direction]['combined']
+                            for k in [x for x in Results_signals[exercise][file][rep][direction].keys() if x!='combined']:# k=[x for x in Results_signals[exercise][file][rep][direction].keys() if x!='combined'][0]
+                                df = pd.concat((df, 
+                                                pd.DataFrame(
+                                                    data=Results_signals[exercise][file][rep][direction][k].values,
+                                                    columns=['_'.join([str(k),c]) for c in Results_signals[exercise][file][rep][direction][k].columns]
+                                                    )
+                                                ),
+                                               axis=1)
+                            df.to_excel(writer,
+                                        # sheet_name='_'.join([exercise.replace('Syncro ',''),file,rep,direction]),
+                                        sheet_name='_'.join([exercise.replace(' bilateral',''),file,rep,direction]),
+                                        index=False)
         writer.save()
         processed_data = output.getvalue()
         
