@@ -274,12 +274,11 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
     exercise_file_container_1.empty()
     exercise_file_container_2.empty()
     load_rep_container.empty()
-    del exercise_file_container_1, exercise_file_container_2, load_rep_container
     return Results_parameters, Results_signals
 
 def oneLiner(Results_parameters, name, date, body_mass, method='mean', exercises=['Syncro smith bilateral', 'Syncro bilateral']):
     '''
-    'method' can be either 'median',  'mean' or 'max'
+    'method' can be either 'median',  'mean' or 'best'
     method = Options['oneLiner_method']
     '''
     oneLiner=pd.DataFrame()
@@ -303,7 +302,7 @@ def oneLiner(Results_parameters, name, date, body_mass, method='mean', exercises
                     oneLiner.loc[0,'_'.join([exercise,par,'load'+str(load_nr)])]=df_ex_sum_ld[par].mean()
                 elif method=='median':
                     oneLiner.loc[0,'_'.join([exercise,par,'load'+str(load_nr)])]=df_ex_sum_ld[par].median()
-                elif method=='max':
+                elif method=='best':
                     oneLiner.loc[0,'_'.join([exercise,par,'load'+str(load_nr)])]=df_ex_sum_ld[par].max()
                 
     oneLiner=oneLiner[list(oneLiner.columns[0:3])+sorted(list(oneLiner.columns[3:]))]
@@ -514,7 +513,7 @@ def user_input_options():
     Options['oneLiner_method'] = st.sidebar.selectbox('summary parameter caclulation method', [
         'mean',
         'median',
-        'max'],
+        'best'],
         0)
     Options['transpose_oneLiner'] =  st.sidebar.checkbox('transpose one-liner (to column)',
                                                           value=True,
