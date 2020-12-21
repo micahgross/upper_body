@@ -182,7 +182,7 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
                 # iterate through phases
                 for phase in ['out','in']:# phase='out' # phase='in'
                     # generate appropriate keys for Results_signals and Results_parameters
-                    Results_signals[exercise]['file_'+str(f_nr+1)]['Rep'+str(rep)][phase]={}
+                    # Results_signals[exercise]['file_'+str(f_nr+1)]['Rep'+str(rep)][phase]={}
                     # Results_parameters[exercise]['file_'+str(f_nr+1)]['rep_'+str(rep)][phase]={}
                     
                     # create dict to store signals within phase
