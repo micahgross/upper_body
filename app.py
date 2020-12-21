@@ -263,7 +263,7 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
                         
                     for machine in [1,2,'combined']:# machine=1 machine='combined'
                         for par in ['Fpeak','Fmean','Fpeak_calc','Fmean_calc','vpeak','vmean','Ppeak','Pmean','Ppeak_calc','Pmean_calc','distance','duration']:# par='Fpeak'
-                            Results_parameters[exercise]['summary'].loc[i,phase+'_'+('m'+str(machine) if type(machine)==int else machine)+'_'+par]=calculate_parameters(regular_phase_signals,machine)[par].values[0]
+                            Results_parameters[exercise]['summary'].loc[i,phase+'_'+('m'+str(machine) if type(machine)==int else machine)+'_'+par]=calculate_parameters(regular_phase_signals,machine,a_threshold=0.0)[par].values[0]
 
                     # save regular_phase_signals to summary dictionary
                     Results_signals[exercise]['file_'+str(f_nr+1)]['Rep'+str(rep)][phase]=regular_phase_signals
@@ -274,6 +274,7 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
     exercise_file_container_1.empty()
     exercise_file_container_2.empty()
     load_rep_container.empty()
+    del exercise_file_container_1, exercise_file_container_2, load_rep_container
     return Results_parameters, Results_signals
 
 def oneLiner(Results_parameters, name, date, body_mass, method='mean', exercises=['Syncro smith bilateral', 'Syncro bilateral']):
