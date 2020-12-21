@@ -279,7 +279,8 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
                             Results_parameters[exercise]['summary'].loc[i,phase+'_'+('m'+str(machine) if type(machine)==int else machine)+'_'+par]=calculate_parameters(regular_phase_signals,machine)[par].values[0]
 
                     # save regular_phase_signals to summary dictionary
-                    Results_signals[exercise]['file_'+str(f_nr+1)]['Rep'+str(rep)][phase]=regular_phase_signals
+                    if phase==conc_direction:
+                        Results_signals[exercise]['file_'+str(f_nr+1)]['Rep'+str(rep)][phase]=regular_phase_signals
 
         # sort the summary table
         if 'summary' in Results_parameters[exercise].keys():
