@@ -91,21 +91,34 @@ def F_calc_from_impulse(regular_phase_signals, programmed_resistance, side_load_
     F_calc=F_net-F_machine
     return F_calc
 
-def calculate_parameters(regular_phase_signals,machine,a_threshold=0.0):
-    on=regular_phase_signals[machine][regular_phase_signals[machine]['Acceleration [m/(s^2)]']>a_threshold].index.min()
-    off=regular_phase_signals[machine][regular_phase_signals[machine]['Acceleration [m/(s^2)]']>a_threshold].index.max()
-    return pd.DataFrame({'Fpeak':regular_phase_signals[machine].loc[on:off,'Force [N]'].max(),
-                         'Fmean':regular_phase_signals[machine].loc[on:off,'Force [N]'].mean(),
-                         'Fpeak_calc':regular_phase_signals[machine].loc[on:off,'F_calc [N]'].max(),
-                         'Fmean_calc':regular_phase_signals[machine].loc[on:off,'F_calc [N]'].mean(),
-                         'vpeak':regular_phase_signals[machine].loc[on:off,'Speed [m/s]'].max(),
-                         'vmean':regular_phase_signals[machine].loc[on:off,'Speed [m/s]'].mean(),
-                         'Ppeak':regular_phase_signals[machine].loc[on:off,'Power [W]'].max(),
-                         'Pmean':regular_phase_signals[machine].loc[on:off,'Power [W]'].mean(),
-                         'Ppeak_calc':regular_phase_signals[machine].loc[on:off,'P_calc [W]'].max(),
-                         'Pmean_calc':regular_phase_signals[machine].loc[on:off,'P_calc [W]'].mean(),
-                         'distance':regular_phase_signals[machine].loc[on:off,'Position [m]'].max()-regular_phase_signals[machine].loc[on:off,'Position [m]'].min(),# max position minus min position
-                         'duration':regular_phase_signals[machine].loc[on:off,'Time [s]'].max()-regular_phase_signals[machine].loc[on:off,'Time [s]'].min()},index=[0])
+# def calculate_parameters(regular_phase_signals,machine,a_threshold=0.0):
+#     on=regular_phase_signals[machine][regular_phase_signals[machine]['Acceleration [m/(s^2)]']>a_threshold].index.min()
+#     off=regular_phase_signals[machine][regular_phase_signals[machine]['Acceleration [m/(s^2)]']>a_threshold].index.max()
+#     return pd.DataFrame({'Fpeak':regular_phase_signals[machine].loc[on:off,'Force [N]'].max(),
+#                          'Fmean':regular_phase_signals[machine].loc[on:off,'Force [N]'].mean(),
+#                          'Fpeak_calc':regular_phase_signals[machine].loc[on:off,'F_calc [N]'].max(),
+#                          'Fmean_calc':regular_phase_signals[machine].loc[on:off,'F_calc [N]'].mean(),
+#                          'vpeak':regular_phase_signals[machine].loc[on:off,'Speed [m/s]'].max(),
+#                          'vmean':regular_phase_signals[machine].loc[on:off,'Speed [m/s]'].mean(),
+#                          'Ppeak':regular_phase_signals[machine].loc[on:off,'Power [W]'].max(),
+#                          'Pmean':regular_phase_signals[machine].loc[on:off,'Power [W]'].mean(),
+#                          'Ppeak_calc':regular_phase_signals[machine].loc[on:off,'P_calc [W]'].max(),
+#                          'Pmean_calc':regular_phase_signals[machine].loc[on:off,'P_calc [W]'].mean(),
+#                          'distance':regular_phase_signals[machine].loc[on:off,'Position [m]'].max()-regular_phase_signals[machine].loc[on:off,'Position [m]'].min(),# max position minus min position
+#                          'duration':regular_phase_signals[machine].loc[on:off,'Time [s]'].max()-regular_phase_signals[machine].loc[on:off,'Time [s]'].min()},index=[0])
+def calculate_parameters(regular_phase_signals,machine):
+    return pd.DataFrame({'Fpeak':regular_phase_signals[machine]['Force [N]'].max(),
+                         'Fmean':regular_phase_signals[machine]['Force [N]'].mean(),
+                         'Fpeak_calc':regular_phase_signals[machine]['F_calc [N]'].max(),
+                         'Fmean_calc':regular_phase_signals[machine]['F_calc [N]'].mean(),
+                         'vpeak':regular_phase_signals[machine]['Speed [m/s]'].max(),
+                         'vmean':regular_phase_signals[machine]['Speed [m/s]'].mean(),
+                         'Ppeak':regular_phase_signals[machine]['Power [W]'].max(),
+                         'Pmean':regular_phase_signals[machine]['Power [W]'].mean(),
+                         'Ppeak_calc':regular_phase_signals[machine]['P_calc [W]'].max(),
+                         'Pmean_calc':regular_phase_signals[machine]['P_calc [W]'].mean(),
+                         'distance':regular_phase_signals[machine]['Position [m]'].max()-regular_phase_signals[machine]['Position [m]'].min(),# max position minus min position
+                         'duration':regular_phase_signals[machine]['Time [s]'].max()-regular_phase_signals[machine]['Time [s]'].min()},index=[0])
 
 def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side_loads):#, parameters_to_excel=False, signals_to_excel=False):
     # prepare dictionaries
@@ -180,12 +193,12 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
                     for machine in [1,2]:# machine=1
                         phase_signals[machine]=df_in[((df_in['Repetition # (per Set)']==rep) & (df_in['Machine index (In Syncro)']==machine) & (df_in['Motion type']=='Con. / Resist.' if phase=='out' else df_in['Motion type']=='Ecc. / Assist.'))][Options['use_cols']]
                         phase_signals[machine].columns=Options['use_cols']# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
-                        # if phase==conc_direction:
-                        #     i_end_prop = list(np.sign(phase_signals[machine]['Speed [m/s]']) == np.sign(phase_signals[machine]['Acceleration [m/(s^2)]'])).index(False)
-                        #     phase_signals[machine] = phase_signals[machine].iloc[:i_end_prop]# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
-                        #     # # i_end_prop = max(np.where(np.sign(phase_signals[machine]['Speed [m/s]']) == np.sign(phase_signals[machine]['Acceleration [m/(s^2)]']))[0])
-                        #     # idx_end_prop = phase_signals[machine].index[i_end_prop]
-                        #     # phase_signals[machine] = phase_signals[machine].loc[:idx_end_prop]
+                        if phase==conc_direction:
+                            i_end_prop = list(np.sign(phase_signals[machine]['Speed [m/s]']) == np.sign(phase_signals[machine]['Acceleration [m/(s^2)]'])).index(False)
+                            phase_signals[machine] = phase_signals[machine].iloc[:i_end_prop]# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
+                            # # i_end_prop = max(np.where(np.sign(phase_signals[machine]['Speed [m/s]']) == np.sign(phase_signals[machine]['Acceleration [m/(s^2)]']))[0])
+                            # idx_end_prop = phase_signals[machine].index[i_end_prop]
+                            # phase_signals[machine] = phase_signals[machine].loc[:idx_end_prop]
                             
                     if len(phase_signals[1])*len(phase_signals[2])==0:# if the phase wasn't recorded for this rep
                         st.write('rep '+str(rep)+', '+phase+': no available data')
@@ -263,7 +276,7 @@ def results_parameters_signals(file_dfs, df_setting, name, date, exercises, side
                         
                     for machine in [1,2,'combined']:# machine=1 machine='combined'
                         for par in ['Fpeak','Fmean','Fpeak_calc','Fmean_calc','vpeak','vmean','Ppeak','Pmean','Ppeak_calc','Pmean_calc','distance','duration']:# par='Fpeak'
-                            Results_parameters[exercise]['summary'].loc[i,phase+'_'+('m'+str(machine) if type(machine)==int else machine)+'_'+par]=calculate_parameters(regular_phase_signals,machine,a_threshold=0.0)[par].values[0]
+                            Results_parameters[exercise]['summary'].loc[i,phase+'_'+('m'+str(machine) if type(machine)==int else machine)+'_'+par]=calculate_parameters(regular_phase_signals,machine)[par].values[0]
 
                     # save regular_phase_signals to summary dictionary
                     Results_signals[exercise]['file_'+str(f_nr+1)]['Rep'+str(rep)][phase]=regular_phase_signals
