@@ -640,6 +640,7 @@ if data_export_file is not None:
     settings = get_settings_from_export(data_export_file)
     if len(settings)==0:
         st.write('Error: raw data export file is empty. Try generating new file from 1080 WebApp')
+    else:
         with st.beta_expander('Basic info', expanded=True):
             st.write('Client name: '+settings['Name'].unique()[0])
             st.write('Test date: '+settings['Date'].unique()[0])
