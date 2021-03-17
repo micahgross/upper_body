@@ -19,7 +19,7 @@ import json
 # import xlsxwriter
 from io import BytesIO
 import base64
-
+#%%
 def dfDict_to_json(dict_of_df, orient, **kwargs):# kwargs e.g., date_format='iso' # dict_of_df = Laps
     jsonified_dict={}
     for key in dict_of_df.keys():# key = list(dict_of_df.keys())[0]
@@ -153,51 +153,52 @@ def results_parameters_signals(data_export_file, settings, side_loads, Options):
                     ] = 'isokinetic'
                 for rep in df_set['Repetition # (per Set)'].unique():# rep = df_set['Repetition # (per Set)'].unique()[0]
                     df_rep = df_set[df_set['Repetition # (per Set)']==rep]
-                    # generate appropriate keys for Results_signals
-                    Results_signals[exercise]['set '+str(set_nr)]['rep'+str(rep)] = {}
-                    for phase in ['out']:# phase='out' # phase='in'
-                        phase_signals = {}
-                        regular_phase_signals = {}
-                        
-                        # extract desired raw signals
-                        for machine in [1,2]:# machine=1
-                            phase_signals[machine] = df_rep[((df_rep['Machine index (In Syncro)']==machine) & (df_rep['Motion type']=='Con. / Resist.' if phase=='out' else df_rep['Motion type']=='Ecc. / Assist.'))][Options['use_cols']]
-                            phase_signals[machine].columns=Options['use_cols']# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
-                        if len(phase_signals[1])*len(phase_signals[2])==0:# if the phase wasn't recorded for this rep
-                            print('rep '+str(rep)+', '+phase+': no available data')
-                    
-                        #standardize time and signals
-                        for machine in [1,2]:# machine=1
-                            regular_phase_signals[machine] = pd.DataFrame()
-                            orig_time = phase_signals[machine]['Sample duration [s]'].cumsum()
-                            regular_phase_signals[machine]['Time [s]'] = regular_time(duration=round(orig_time.max(),3))
-                            for n,sig in enumerate([c for c in Options['use_cols'] if c!='Sample duration [s]']):# n,sig=0,'Position' # n,sig=1,'Speed [m/s]'
-                                regular_phase_signals[machine][sig] = regular_time(duration=round(orig_time.max(),3),
-                                               orig_time_and_signal = [orig_time,
-                                                                      phase_signals[machine][sig]])[1]
-                        # calculate power
-                        for machine in [1,2]:# machine=1
-                            regular_phase_signals[machine]['Power [W]'] = regular_phase_signals[machine]['Force [N]']*regular_phase_signals[machine]['Speed [m/s]']
-                    
-                        # calculate combined values (both sides)
-                        regular_phase_signals['combined'] = pd.DataFrame(columns=regular_phase_signals[1].columns)
-                        length_combined = np.min([len(regular_phase_signals[1]['Time [s]']),# sample number of machine 1
-                                            len(regular_phase_signals[2]['Time [s]'])])# sample number of machine 2 (take the lower of the two)
-                        regular_phase_signals['combined']['Time [s]'] = regular_phase_signals[1]['Time [s]'][:length_combined]# the shorter of the two sides
-                        combined_position = pd.Series(0,index=regular_phase_signals['combined']['Time [s]'].index)
-                        for i in combined_position.index[1:]:
-                            dx1 = regular_phase_signals[1].loc[i,'Position [m]']-regular_phase_signals[1].loc[i-1,'Position [m]']# positional change, machine 1
-                            dx2 = regular_phase_signals[2].loc[i,'Position [m]']-regular_phase_signals[2].loc[i-1,'Position [m]']# positional change, machine 2
-                            dxmean = (dx1+dx2)/2.# positional change, mean of two machines
-                            combined_position.loc[i] = combined_position.loc[i-1]+dxmean
+                    if mo_type in df_rep['Motion type'].unique():
+                        # generate appropriate keys for Results_signals
+                        Results_signals[exercise]['set '+str(set_nr)]['rep'+str(rep)] = {}
+                        for phase in ['out']:# phase='out' # phase='in'
+                            phase_signals = {}
+                            regular_phase_signals = {}
                             
-                        regular_phase_signals['combined']['Position [m]'] = combined_position# based on mean of two machines
-                        regular_phase_signals['combined']['Speed [m/s]'] = (regular_phase_signals[1]['Speed [m/s]']+regular_phase_signals[2]['Speed [m/s]'])[:length_combined]/2# average of the two sides
-                        regular_phase_signals['combined']['Acceleration [m/(s^2)]'] = (regular_phase_signals[1]['Acceleration [m/(s^2)]']+regular_phase_signals[2]['Acceleration [m/(s^2)]'])[:length_combined]/2# average of the two sides
-                        regular_phase_signals['combined']['Force [N]'] = (regular_phase_signals[1]['Force [N]']+regular_phase_signals[2]['Force [N]'])[:length_combined]# sum of the two sides
-                        regular_phase_signals['combined']['Power [W]'] = (regular_phase_signals[1]['Power [W]']+regular_phase_signals[2]['Power [W]'])[:length_combined]# sum of the two sides
-                        # save regular_phase_signals to summary dictionary
-                        Results_signals[exercise]['set '+str(set_nr)]['rep'+str(rep)][phase] = regular_phase_signals
+                            # extract desired raw signals
+                            for machine in [1,2]:# machine=1
+                                phase_signals[machine] = df_rep[((df_rep['Machine index (In Syncro)']==machine) & (df_rep['Motion type']=='Con. / Resist.' if phase=='out' else df_rep['Motion type']=='Ecc. / Assist.'))][Options['use_cols']]
+                                phase_signals[machine].columns=Options['use_cols']# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
+                            if len(phase_signals[1])*len(phase_signals[2])==0:# if the phase wasn't recorded for this rep
+                                print('rep '+str(rep)+', '+phase+': no available data')
+                        
+                            #standardize time and signals
+                            for machine in [1,2]:# machine=1
+                                regular_phase_signals[machine] = pd.DataFrame()
+                                orig_time = phase_signals[machine]['Sample duration [s]'].cumsum()
+                                regular_phase_signals[machine]['Time [s]'] = regular_time(duration=round(orig_time.max(),3))
+                                for n,sig in enumerate([c for c in Options['use_cols'] if c!='Sample duration [s]']):# n,sig=0,'Position' # n,sig=1,'Speed [m/s]'
+                                    regular_phase_signals[machine][sig] = regular_time(duration=round(orig_time.max(),3),
+                                                   orig_time_and_signal = [orig_time,
+                                                                          phase_signals[machine][sig]])[1]
+                            # calculate power
+                            for machine in [1,2]:# machine=1
+                                regular_phase_signals[machine]['Power [W]'] = regular_phase_signals[machine]['Force [N]']*regular_phase_signals[machine]['Speed [m/s]']
+                        
+                            # calculate combined values (both sides)
+                            regular_phase_signals['combined'] = pd.DataFrame(columns=regular_phase_signals[1].columns)
+                            length_combined = np.min([len(regular_phase_signals[1]['Time [s]']),# sample number of machine 1
+                                                len(regular_phase_signals[2]['Time [s]'])])# sample number of machine 2 (take the lower of the two)
+                            regular_phase_signals['combined']['Time [s]'] = regular_phase_signals[1]['Time [s]'][:length_combined]# the shorter of the two sides
+                            combined_position = pd.Series(0,index=regular_phase_signals['combined']['Time [s]'].index)
+                            for i in combined_position.index[1:]:
+                                dx1 = regular_phase_signals[1].loc[i,'Position [m]']-regular_phase_signals[1].loc[i-1,'Position [m]']# positional change, machine 1
+                                dx2 = regular_phase_signals[2].loc[i,'Position [m]']-regular_phase_signals[2].loc[i-1,'Position [m]']# positional change, machine 2
+                                dxmean = (dx1+dx2)/2.# positional change, mean of two machines
+                                combined_position.loc[i] = combined_position.loc[i-1]+dxmean
+                                
+                            regular_phase_signals['combined']['Position [m]'] = combined_position# based on mean of two machines
+                            regular_phase_signals['combined']['Speed [m/s]'] = (regular_phase_signals[1]['Speed [m/s]']+regular_phase_signals[2]['Speed [m/s]'])[:length_combined]/2# average of the two sides
+                            regular_phase_signals['combined']['Acceleration [m/(s^2)]'] = (regular_phase_signals[1]['Acceleration [m/(s^2)]']+regular_phase_signals[2]['Acceleration [m/(s^2)]'])[:length_combined]/2# average of the two sides
+                            regular_phase_signals['combined']['Force [N]'] = (regular_phase_signals[1]['Force [N]']+regular_phase_signals[2]['Force [N]'])[:length_combined]# sum of the two sides
+                            regular_phase_signals['combined']['Power [W]'] = (regular_phase_signals[1]['Power [W]']+regular_phase_signals[2]['Power [W]'])[:length_combined]# sum of the two sides
+                            # save regular_phase_signals to summary dictionary
+                            Results_signals[exercise]['set '+str(set_nr)]['rep'+str(rep)][phase] = regular_phase_signals
             else:# it is a ballistic set
                 settings.loc[
                     settings[((settings['Exercise']==exercise) & (settings['Set']==set_nr))].index,
@@ -208,127 +209,128 @@ def results_parameters_signals(data_export_file, settings, side_loads, Options):
                 # else:# iterate through reps
                 for rep in df_set['Repetition # (per Set)'].unique():# rep = df_set['Repetition # (per Set)'].unique()[0]
                     df_rep = df_set[df_set['Repetition # (per Set)']==rep]
-                    # generate appropriate keys for Results_signals
-                    Results_signals[exercise]['set '+str(set_nr)]['rep'+str(rep)] = {}
+                    if mo_type in df_rep['Motion type'].unique():
+                        # generate appropriate keys for Results_signals
+                        Results_signals[exercise]['set '+str(set_nr)]['rep'+str(rep)] = {}
+            
+                        if 'summary' not in Results_parameters[exercise].keys() or len(Results_parameters[exercise]['summary'])==0:# true for first running rep only
+                            Results_parameters[exercise]['summary'] = pd.DataFrame()
+                            running_rep = 1# total running rep number within exercise
+                        else:
+                            running_rep = Results_parameters[exercise]['summary'][Results_parameters[exercise]['summary']['set_nr']>0].index[-1]+1# total running rep number within exercise
+                            
+                        if exercise=='Syncro smith bilateral':
+                            programmed_resistance = float(df_rep[df_rep['Motion type']==mo_type][col].mode())# programmed motor resistance for the eccentric phase in kg
+                            load_nr = set_nr
+                            load_mass = 2*side_loads.loc[load_nr, exercise]
+                        elif exercise=='Syncro bilateral':
+                            # try:# in case the concentric phase is indeed missing
+                            #     programmed_resistance = float(df_rep[df_rep['Motion type']==mo_type][col].max())#.mode())# programmed motor resistance for the concentric phase in kg
+                            #     load_nr = int(pd.Series([abs(programmed_resistance-ld) for ld in side_loads[exercise]], index=side_loads[exercise].index).idxmin())
+                            #     load_mass = 2*programmed_resistance
+                            # except:
+                            #     continue
+                            programmed_resistance = float(df_rep[df_rep['Motion type']==mo_type][col].max())#.mode())# programmed motor resistance for the concentric phase in kg
+                            load_nr = set_nr
+                            load_mass = 2*side_loads.loc[load_nr, exercise]
+            
+                        # load_mass = 2*side_loads.loc[load_nr, exercise]
+                        # print([programmed_resistance, load_mass])
+                        if mo_type=='Con. / Resist.' and not(abs(load_mass - 2*programmed_resistance)<0.5):#and not(abs(load_mass - 2*programmed_resistance)<=0.1):
+                            st.write('Warning: '+exercise+' set '+str(set_nr)+', rep '+str(rep)+'. Incorrect resistance setting ('+str(round(2*programmed_resistance, 1))+', not '+str(round(2*side_loads.loc[set_nr, exercise], 1))+')')# continue# because the resistance was set incorrectly
+                        # else:
+                        # display load for monitoring purposes
+                        load_rep_container.text('load '+str(load_nr)+' ('+str(round(load_mass, 1))+' kg), rep '+str(rep))
         
-                    if 'summary' not in Results_parameters[exercise].keys() or len(Results_parameters[exercise]['summary'])==0:# true for first running rep only
-                        Results_parameters[exercise]['summary'] = pd.DataFrame()
-                        running_rep = 1# total running rep number within exercise
-                    else:
-                        running_rep = Results_parameters[exercise]['summary'][Results_parameters[exercise]['summary']['set_nr']>0].index[-1]+1# total running rep number within exercise
-                        
-                    if exercise=='Syncro smith bilateral':
-                        programmed_resistance = float(df_rep[((df_rep['Repetition # (per Set)']==rep) & (df_rep['Motion type']==mo_type))][col].mode())# programmed motor resistance for the eccentric phase in kg
-                        load_nr = set_nr
-                        load_mass = 2*side_loads.loc[load_nr, exercise]
-                    elif exercise=='Syncro bilateral':
-                        # try:# in case the concentric phase is indeed missing
-                        #     programmed_resistance = float(df_rep[((df_rep['Repetition # (per Set)']==rep) & (df_rep['Motion type']==mo_type))][col].max())#.mode())# programmed motor resistance for the concentric phase in kg
-                        #     load_nr = int(pd.Series([abs(programmed_resistance-ld) for ld in side_loads[exercise]], index=side_loads[exercise].index).idxmin())
-                        #     load_mass = 2*programmed_resistance
-                        # except:
-                        #     continue
-                        programmed_resistance = float(df_rep[((df_rep['Repetition # (per Set)']==rep) & (df_rep['Motion type']==mo_type))][col].max())#.mode())# programmed motor resistance for the concentric phase in kg
-                        load_nr = set_nr
-                        load_mass = 2*side_loads.loc[load_nr, exercise]
-        
-                    # load_mass = 2*side_loads.loc[load_nr, exercise]
-                    # print([programmed_resistance, load_mass])
-                    if mo_type=='Con. / Resist.' and not(abs(load_mass - 2*programmed_resistance)<0.5):#and not(abs(load_mass - 2*programmed_resistance)<=0.1):
-                        st.write('Warning: '+exercise+' set '+str(set_nr)+', rep '+str(rep)+'. Incorrect resistance setting ('+str(round(2*programmed_resistance, 1))+', not '+str(round(2*side_loads.loc[set_nr, exercise], 1))+')')# continue# because the resistance was set incorrectly
-                    # else:
-                    # display load for monitoring purposes
-                    load_rep_container.text('load '+str(load_nr)+' ('+str(round(load_mass, 1))+' kg), rep '+str(rep))
-    
-                    # iterate through phases
-                    for phase in ['out','in']:# phase='out' # phase='in'
-                        # create dict to store signals within phase
-                        phase_signals = {}
-                        regular_phase_signals = {}
-                        
-                        # extract desired raw signals
-                        for machine in [1,2]:# machine=1
-                            phase_signals[machine] = df_rep[((df_rep['Machine index (In Syncro)']==machine) & (df_rep['Motion type']=='Con. / Resist.' if phase=='out' else df_rep['Motion type']=='Ecc. / Assist.'))][Options['use_cols']]
-                            phase_signals[machine].columns = Options['use_cols']# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
-                                
-                        if len(phase_signals[1])*len(phase_signals[2])==0:# if the phase wasn't recorded for this rep
-                            st.write('rep '+str(rep)+', '+phase+': no available data')
-                            continue
-                    
-                        # change the direction of speed to positive
-                        if ((conc_direction=='in') & (phase=='in')):
+                        # iterate through phases
+                        for phase in ['out','in']:# phase='out' # phase='in'
+                            # create dict to store signals within phase
+                            phase_signals = {}
+                            regular_phase_signals = {}
+                            
+                            # extract desired raw signals
                             for machine in [1,2]:# machine=1
-                                for sig in ['Speed [m/s]','Acceleration [m/(s^2)]']:# sig='Speed [m/s]'
-                                    phase_signals[machine][sig] = -1*phase_signals[machine][sig]
-    
-                        #standardize time and signals
-                        for machine in [1,2]:# machine=1
-                            regular_phase_signals[machine] = pd.DataFrame()
-                            orig_time = phase_signals[machine]['Sample duration [s]'].cumsum()
-                            regular_phase_signals[machine]['Time [s]'] = regular_time(duration=round(orig_time.max(),3))
-                            for n,sig in enumerate([c for c in Options['use_cols'] if c!='Sample duration [s]']):# n,sig=0,'Position' # n,sig=1,'Speed [m/s]'
-                                regular_phase_signals[machine][sig] = regular_time(duration=round(orig_time.max(),3),
-                                               orig_time_and_signal = [orig_time,
-                                                                      phase_signals[machine][sig]])[1]
-                        # calculate F_calc 
-                        if ((conc_direction=='in') & (phase=='in')):
-                            if Options['F_calc_method']=='acceleration':# calculate from acceleration and assumed resistance
-                                st.write('Options[F_calc_method]==acceleration not programmed yet')
-        
-                            if Options['F_calc_method']=='impulse':# calculate using F*dt=m*dv
+                                phase_signals[machine] = df_rep[((df_rep['Machine index (In Syncro)']==machine) & (df_rep['Motion type']=='Con. / Resist.' if phase=='out' else df_rep['Motion type']=='Ecc. / Assist.'))][Options['use_cols']]
+                                phase_signals[machine].columns = Options['use_cols']# phase_signals[machine][['Speed [m/s]', 'Acceleration [m/(s^2)]']].plot()
+                                    
+                            if len(phase_signals[1])*len(phase_signals[2])==0:# if the phase wasn't recorded for this rep
+                                st.write('rep '+str(rep)+', '+phase+': no available data')
+                                continue
+                        
+                            # change the direction of speed to positive
+                            if ((conc_direction=='in') & (phase=='in')):
                                 for machine in [1,2]:# machine=1
-                                    regular_phase_signals[machine]['F_calc [N]'] = F_calc_from_impulse(regular_phase_signals[machine], programmed_resistance,
-                                                         side_load_mass = 0.5*load_mass)
-                
-                            elif Options['F_calc_method']=='energy':
-                                st.write('Options[F_calc_method]==energy not programmed yet')
-                
-                            else:
-                                st.write('no F_calc method specified')
-                                        
-                        else:# if phase or conc_direction is 'out', in which case F_calc is unnecessary
+                                    for sig in ['Speed [m/s]','Acceleration [m/(s^2)]']:# sig='Speed [m/s]'
+                                        phase_signals[machine][sig] = -1*phase_signals[machine][sig]
+        
+                            #standardize time and signals
                             for machine in [1,2]:# machine=1
-                                regular_phase_signals[machine]['F_calc [N]'] = None#np.nan
-                            
-                        # calculate power
-                        for machine in [1,2]:# machine=1
-                            regular_phase_signals[machine]['Power [W]'] = regular_phase_signals[machine]['Force [N]']*regular_phase_signals[machine]['Speed [m/s]']
-                            regular_phase_signals[machine]['P_calc [W]'] = regular_phase_signals[machine]['F_calc [N]']*regular_phase_signals[machine]['Speed [m/s]']
+                                regular_phase_signals[machine] = pd.DataFrame()
+                                orig_time = phase_signals[machine]['Sample duration [s]'].cumsum()
+                                regular_phase_signals[machine]['Time [s]'] = regular_time(duration=round(orig_time.max(),3))
+                                for n,sig in enumerate([c for c in Options['use_cols'] if c!='Sample duration [s]']):# n,sig=0,'Position' # n,sig=1,'Speed [m/s]'
+                                    regular_phase_signals[machine][sig] = regular_time(duration=round(orig_time.max(),3),
+                                                   orig_time_and_signal = [orig_time,
+                                                                          phase_signals[machine][sig]])[1]
+                            # calculate F_calc 
+                            if ((conc_direction=='in') & (phase=='in')):
+                                if Options['F_calc_method']=='acceleration':# calculate from acceleration and assumed resistance
+                                    st.write('Options[F_calc_method]==acceleration not programmed yet')
+            
+                                if Options['F_calc_method']=='impulse':# calculate using F*dt=m*dv
+                                    for machine in [1,2]:# machine=1
+                                        regular_phase_signals[machine]['F_calc [N]'] = F_calc_from_impulse(regular_phase_signals[machine], programmed_resistance,
+                                                             side_load_mass = 0.5*load_mass)
                     
-                        # calculate combined values (both sides)
-                        regular_phase_signals['combined'] = pd.DataFrame(columns=regular_phase_signals[1].columns)
-                        length_combined = np.min([len(regular_phase_signals[1]['Time [s]']),# sample number of machine 1
-                                            len(regular_phase_signals[2]['Time [s]'])])# sample number of machine 2 (take the lower of the two)
-                        regular_phase_signals['combined']['Time [s]'] = regular_phase_signals[1]['Time [s]'][:length_combined]# the shorter of the two sides
-                        combined_position = pd.Series(0,index=regular_phase_signals['combined']['Time [s]'].index)
-                        for i in combined_position.index[1:]:
-                            dx1 = regular_phase_signals[1].loc[i,'Position [m]']-regular_phase_signals[1].loc[i-1,'Position [m]']# positional change, machine 1
-                            dx2 = regular_phase_signals[2].loc[i,'Position [m]']-regular_phase_signals[2].loc[i-1,'Position [m]']# positional change, machine 2
-                            dxmean = (dx1+dx2)/2.# positional change, mean of two machines
-                            combined_position.loc[i] = combined_position.loc[i-1]+dxmean
-                            
-                        regular_phase_signals['combined']['Position [m]'] = combined_position# based on mean of two machines
-                        regular_phase_signals['combined']['Speed [m/s]'] = (regular_phase_signals[1]['Speed [m/s]']+regular_phase_signals[2]['Speed [m/s]'])[:length_combined]/2# average of the two sides
-                        regular_phase_signals['combined']['Acceleration [m/(s^2)]'] = (regular_phase_signals[1]['Acceleration [m/(s^2)]']+regular_phase_signals[2]['Acceleration [m/(s^2)]'])[:length_combined]/2# average of the two sides
-                        regular_phase_signals['combined']['Force [N]'] = (regular_phase_signals[1]['Force [N]']+regular_phase_signals[2]['Force [N]'])[:length_combined]# sum of the two sides
-                        regular_phase_signals['combined']['Power [W]'] = (regular_phase_signals[1]['Power [W]']+regular_phase_signals[2]['Power [W]'])[:length_combined]# sum of the two sides
-                        regular_phase_signals['combined']['F_calc [N]'] = (regular_phase_signals[1]['F_calc [N]']+regular_phase_signals[2]['F_calc [N]'])[:length_combined]# sum of the two sides
-                        regular_phase_signals['combined']['P_calc [W]'] = (regular_phase_signals[1]['P_calc [W]']+regular_phase_signals[2]['P_calc [W]'])[:length_combined]# sum of the two sides
-    
-                        # save phase parameters to summary table
-                        i = running_rep#-1
-                        Results_parameters[exercise]['summary'].loc[i,'set_nr'] = set_nr
-                        Results_parameters[exercise]['summary'].loc[i,'rep_nr'] = rep
-                        Results_parameters[exercise]['summary'].loc[i,'load_mass'] = load_mass
-                        Results_parameters[exercise]['summary'].loc[i,'load_nr'] = load_nr
-                            
-                        for machine in [1,2,'combined']:# machine=1 machine='combined'
-                            for par in ['Fpeak','Fmean','Fpeak_calc','Fmean_calc','vpeak','vmean','Ppeak','Pmean','Ppeak_calc','Pmean_calc','distance','duration']:# par='Fpeak'
-                                Results_parameters[exercise]['summary'].loc[i,phase+'_'+('m'+str(machine) if type(machine)==int else machine)+'_'+par] = calculate_parameters(regular_phase_signals,machine)[par].values[0]
-    
-                        # save regular_phase_signals to summary dictionary
-                        if phase==conc_direction:
-                            Results_signals[exercise]['set '+str(set_nr)]['rep'+str(rep)][phase] = regular_phase_signals
+                                elif Options['F_calc_method']=='energy':
+                                    st.write('Options[F_calc_method]==energy not programmed yet')
+                    
+                                else:
+                                    st.write('no F_calc method specified')
+                                            
+                            else:# if phase or conc_direction is 'out', in which case F_calc is unnecessary
+                                for machine in [1,2]:# machine=1
+                                    regular_phase_signals[machine]['F_calc [N]'] = None#np.nan
+                                
+                            # calculate power
+                            for machine in [1,2]:# machine=1
+                                regular_phase_signals[machine]['Power [W]'] = regular_phase_signals[machine]['Force [N]']*regular_phase_signals[machine]['Speed [m/s]']
+                                regular_phase_signals[machine]['P_calc [W]'] = regular_phase_signals[machine]['F_calc [N]']*regular_phase_signals[machine]['Speed [m/s]']
+                        
+                            # calculate combined values (both sides)
+                            regular_phase_signals['combined'] = pd.DataFrame(columns=regular_phase_signals[1].columns)
+                            length_combined = np.min([len(regular_phase_signals[1]['Time [s]']),# sample number of machine 1
+                                                len(regular_phase_signals[2]['Time [s]'])])# sample number of machine 2 (take the lower of the two)
+                            regular_phase_signals['combined']['Time [s]'] = regular_phase_signals[1]['Time [s]'][:length_combined]# the shorter of the two sides
+                            combined_position = pd.Series(0,index=regular_phase_signals['combined']['Time [s]'].index)
+                            for i in combined_position.index[1:]:
+                                dx1 = regular_phase_signals[1].loc[i,'Position [m]']-regular_phase_signals[1].loc[i-1,'Position [m]']# positional change, machine 1
+                                dx2 = regular_phase_signals[2].loc[i,'Position [m]']-regular_phase_signals[2].loc[i-1,'Position [m]']# positional change, machine 2
+                                dxmean = (dx1+dx2)/2.# positional change, mean of two machines
+                                combined_position.loc[i] = combined_position.loc[i-1]+dxmean
+                                
+                            regular_phase_signals['combined']['Position [m]'] = combined_position# based on mean of two machines
+                            regular_phase_signals['combined']['Speed [m/s]'] = (regular_phase_signals[1]['Speed [m/s]']+regular_phase_signals[2]['Speed [m/s]'])[:length_combined]/2# average of the two sides
+                            regular_phase_signals['combined']['Acceleration [m/(s^2)]'] = (regular_phase_signals[1]['Acceleration [m/(s^2)]']+regular_phase_signals[2]['Acceleration [m/(s^2)]'])[:length_combined]/2# average of the two sides
+                            regular_phase_signals['combined']['Force [N]'] = (regular_phase_signals[1]['Force [N]']+regular_phase_signals[2]['Force [N]'])[:length_combined]# sum of the two sides
+                            regular_phase_signals['combined']['Power [W]'] = (regular_phase_signals[1]['Power [W]']+regular_phase_signals[2]['Power [W]'])[:length_combined]# sum of the two sides
+                            regular_phase_signals['combined']['F_calc [N]'] = (regular_phase_signals[1]['F_calc [N]']+regular_phase_signals[2]['F_calc [N]'])[:length_combined]# sum of the two sides
+                            regular_phase_signals['combined']['P_calc [W]'] = (regular_phase_signals[1]['P_calc [W]']+regular_phase_signals[2]['P_calc [W]'])[:length_combined]# sum of the two sides
+        
+                            # save phase parameters to summary table
+                            i = running_rep#-1
+                            Results_parameters[exercise]['summary'].loc[i,'set_nr'] = set_nr
+                            Results_parameters[exercise]['summary'].loc[i,'rep_nr'] = rep
+                            Results_parameters[exercise]['summary'].loc[i,'load_mass'] = load_mass
+                            Results_parameters[exercise]['summary'].loc[i,'load_nr'] = load_nr
+                                
+                            for machine in [1,2,'combined']:# machine=1 machine='combined'
+                                for par in ['Fpeak','Fmean','Fpeak_calc','Fmean_calc','vpeak','vmean','Ppeak','Pmean','Ppeak_calc','Pmean_calc','distance','duration']:# par='Fpeak'
+                                    Results_parameters[exercise]['summary'].loc[i,phase+'_'+('m'+str(machine) if type(machine)==int else machine)+'_'+par] = calculate_parameters(regular_phase_signals,machine)[par].values[0]
+        
+                            # save regular_phase_signals to summary dictionary
+                            if phase==conc_direction:
+                                Results_signals[exercise]['set '+str(set_nr)]['rep'+str(rep)][phase] = regular_phase_signals
 
         # sort the summary table
         if 'summary' in Results_parameters[exercise].keys():
@@ -498,6 +500,7 @@ def generate_excel(Results_signals, Results_parameters, oneLiners, settings, Opt
 
 #%%
 def get_settings_from_export(data_export_file):# data_export_file = os.path.join('C:\\Users\\BASPO\\Downloads', 'RawDataExport (1).csv')
+    data_export_file.seek(0)
     data_export_df = pd.read_csv(data_export_file, delimiter=';')
     settings = pd.DataFrame()
     for exercise in data_export_df['Exercise'].unique():# exercise = data_export_df['Exercise'].unique()[0] # exercise = data_export_df['Exercise'].unique()[1]
@@ -635,59 +638,61 @@ if data_export_file is not None:
     # with open(os.path.join(os.getcwd(),'saved_variables',(data_export_file.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
     #     fp.write(data_export_file.getbuffer())
     settings = get_settings_from_export(data_export_file)
-    with st.beta_expander('Basic info', expanded=True):
-        st.write('Client name: '+settings['Name'].unique()[0])
-        st.write('Test date: '+settings['Date'].unique()[0])
-        st.write('Exercises: '+str(list(settings['Exercise'].unique())))
-    if settings is not None:
-        protocol_file = st.file_uploader('upload test protocol file (xlsx)', accept_multiple_files=False)
-        if protocol_file is not None:
-            # with open(os.path.join(os.getcwd(),'saved_variables','protocol_file_bytesIO.txt'), 'wb') as fp:
-            #     fp.write(protocol_file.getbuffer())
-            body_mass, side_loads = get_protocoll_data(protocol_file)# protocol_file = uploaded_files[uploaded_files_names.index([n for n in uploaded_files_names if 'Test_Protocol' in n][0])]
-            with st.beta_expander('loads (per side)', expanded=False):
-                st.write(significant_digits(side_loads, 3))
-            if side_loads is not None:
-                Results_parameters, Results_signals, settings = results_parameters_signals(data_export_file,
-                                                                                           settings,
-                                                                                           side_loads,
-                                                                                           Options,
-                                                                                           )
-                with st.beta_expander('Settings', expanded=False):
-                    st.write(significant_digits(settings, 3))
-                if Results_parameters is not None:
-                    oneLiners = oneLiner(Results_parameters, settings, body_mass, method=Options['oneLiner_method'])
-                    if oneLiners is not None:
-                        if any([Options['parameters_to_excel'], Options['signals_to_excel']]):
-                            st.markdown(generate_excel(Results_signals, Results_parameters, oneLiners, settings, Options), unsafe_allow_html=True)#, sign_digits=3
-                            # # save variables thus far
-                            # df_setting.to_json(os.path.join(os.getcwd(),'saved_variables','df_setting.json'), orient='index', date_format='iso')
-                            # with open(os.path.join(os.getcwd(),'saved_variables','file_dfs.json'), 'w') as fp:
-                            #     json.dump(dfDict_to_json(file_dfs, orient='index'), fp)
-                            # with open(os.path.join(os.getcwd(),'saved_variables','name.json'), 'w') as fp:
-                            #     json.dump(name, fp)
-                            # with open(os.path.join(os.getcwd(),'saved_variables','date.json'), 'w') as fp:
-                            #     json.dump(date, fp)
-                            # with open(os.path.join(os.getcwd(),'saved_variables','exercises.json'), 'w') as fp:
-                            #     json.dump(exercises, fp)
-                            # # with open(os.path.join(os.getcwd(),'saved_variables','settings_data.json'), 'w') as fp:
-                            # #     json.dump(settings_data, fp)
-                            # side_loads.to_json(os.path.join(os.getcwd(),'saved_variables','side_loads.json'), orient='index', date_format='iso')
-                            # with open(os.path.join(os.getcwd(),'saved_variables','body_mass.json'), 'w') as fp:
-                            #     json.dump(body_mass, fp)
-                            # with open(os.path.join(os.getcwd(),'saved_variables','Options.json'), 'w') as fp:
-                            #     json.dump(Options, fp)
-                            # # # with open(os.path.join(os.getcwd(),'saved_variables','uploaded_files_names.json'), 'w') as fp:
-                            # # #     json.dump([f.name for f in uploaded_files], fp)
-                            # # # for f in uploaded_files:
-                            # # #     with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
-                            # # #         fp.write(f.getbuffer())
-                            # # # for f in protocol_file:
-                            # # #     # with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
-                            # # #     with open(os.path.join(os.getcwd(),'saved_variables','protocol_file_bytesIO.txt'), 'wb') as fp:
-                            # # #         fp.write(f.getbuffer())
-                            # # # with open(os.path.join(os.getcwd(),'saved_variables','name_date_exercises.json'), 'w') as fp:
-                            # # #     json.dump([name, date, exercises], fp)
-                            # st.write('succeeded!')
-                            st.success('done')
+    if len(settings)==0:
+        st.write('Error: raw data export file is empty. Try generating new file from 1080 WebApp')
+        with st.beta_expander('Basic info', expanded=True):
+            st.write('Client name: '+settings['Name'].unique()[0])
+            st.write('Test date: '+settings['Date'].unique()[0])
+            st.write('Exercises: '+str(list(settings['Exercise'].unique())))
+        if settings is not None:
+            protocol_file = st.file_uploader('upload test protocol file (xlsx)', accept_multiple_files=False)
+            if protocol_file is not None:
+                # with open(os.path.join(os.getcwd(),'saved_variables','protocol_file_bytesIO.txt'), 'wb') as fp:
+                #     fp.write(protocol_file.getbuffer())
+                body_mass, side_loads = get_protocoll_data(protocol_file)# protocol_file = uploaded_files[uploaded_files_names.index([n for n in uploaded_files_names if 'Test_Protocol' in n][0])]
+                with st.beta_expander('loads (per side)', expanded=False):
+                    st.write(significant_digits(side_loads, 3))
+                if side_loads is not None:
+                    Results_parameters, Results_signals, settings = results_parameters_signals(data_export_file,
+                                                                                               settings,
+                                                                                               side_loads,
+                                                                                               Options,
+                                                                                               )
+                    with st.beta_expander('Settings', expanded=False):
+                        st.write(significant_digits(settings, 3))
+                    if Results_parameters is not None:
+                        oneLiners = oneLiner(Results_parameters, settings, body_mass, method=Options['oneLiner_method'])
+                        if oneLiners is not None:
+                            if any([Options['parameters_to_excel'], Options['signals_to_excel']]):
+                                st.markdown(generate_excel(Results_signals, Results_parameters, oneLiners, settings, Options), unsafe_allow_html=True)#, sign_digits=3
+                                # # save variables thus far
+                                # df_setting.to_json(os.path.join(os.getcwd(),'saved_variables','df_setting.json'), orient='index', date_format='iso')
+                                # with open(os.path.join(os.getcwd(),'saved_variables','file_dfs.json'), 'w') as fp:
+                                #     json.dump(dfDict_to_json(file_dfs, orient='index'), fp)
+                                # with open(os.path.join(os.getcwd(),'saved_variables','name.json'), 'w') as fp:
+                                #     json.dump(name, fp)
+                                # with open(os.path.join(os.getcwd(),'saved_variables','date.json'), 'w') as fp:
+                                #     json.dump(date, fp)
+                                # with open(os.path.join(os.getcwd(),'saved_variables','exercises.json'), 'w') as fp:
+                                #     json.dump(exercises, fp)
+                                # # with open(os.path.join(os.getcwd(),'saved_variables','settings_data.json'), 'w') as fp:
+                                # #     json.dump(settings_data, fp)
+                                # side_loads.to_json(os.path.join(os.getcwd(),'saved_variables','side_loads.json'), orient='index', date_format='iso')
+                                # with open(os.path.join(os.getcwd(),'saved_variables','body_mass.json'), 'w') as fp:
+                                #     json.dump(body_mass, fp)
+                                # with open(os.path.join(os.getcwd(),'saved_variables','Options.json'), 'w') as fp:
+                                #     json.dump(Options, fp)
+                                # # # with open(os.path.join(os.getcwd(),'saved_variables','uploaded_files_names.json'), 'w') as fp:
+                                # # #     json.dump([f.name for f in uploaded_files], fp)
+                                # # # for f in uploaded_files:
+                                # # #     with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
+                                # # #         fp.write(f.getbuffer())
+                                # # # for f in protocol_file:
+                                # # #     # with open(os.path.join(os.getcwd(),'saved_variables',(f.name.split('.')[0])+'_bytesIO.txt'), 'wb') as fp:
+                                # # #     with open(os.path.join(os.getcwd(),'saved_variables','protocol_file_bytesIO.txt'), 'wb') as fp:
+                                # # #         fp.write(f.getbuffer())
+                                # # # with open(os.path.join(os.getcwd(),'saved_variables','name_date_exercises.json'), 'w') as fp:
+                                # # #     json.dump([name, date, exercises], fp)
+                                # st.write('succeeded!')
+                                st.success('done')
         
